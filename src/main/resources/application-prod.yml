@@ -1,0 +1,50 @@
+server.port: ${SERVER_PORT:8080}
+
+# Database Configuration for Production
+spring:
+  h2.console.enabled: false
+  datasource:
+    url: dbc:postgresql://localhost:5432/wishlistdb
+    driverClassName: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    # Performance Tuning
+    hikari:
+      maximum-pool-size: 100
+      minimum-idle: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA Configuration
+  jpa:
+    hibernate.ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate.hibernate.format_sql: true
+      hibernate.jdbc.batch_size: 50
+      hibernate.order_inserts: true
+      hibernate.order_updates: true
+
+  # Redis Configuration
+  data.redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache.redis:
+      time-to-live: 3600000
+      key-prefix: wishlist_
+
+# JWT Configuration
+jwt.secret: ${JWT_SECRET}
+
+# Logging
+logging:
+  level:
+    root: warn
+    com.wishlist: info
+  file.name: /var/log/wishlist-service/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 10
