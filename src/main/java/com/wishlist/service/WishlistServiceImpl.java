@@ -51,13 +51,10 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    @Cacheable(value = WISH_CACHE_NAME, key = "#wishId")
-    public WishDTO getWishById(Long wishId) {
-        User currentUser = authService.getCurrentUser();
-
-        Wish wish = wishRepository.findByIdAndUserId(wishId, currentUser.getId())
+    @Cacheable(value = WISH_CACHE_NAME, key = "#wishId + '_' + #userId")
+    public WishDTO getUserWishById(Long wishId, Long userId) {
+        Wish wish = wishRepository.findByIdAndUserId(wishId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wish not found with id: " + wishId));
-
         return convertToDTO(wish);
     }
 
@@ -97,7 +94,6 @@ public class WishlistServiceImpl implements WishlistService {
         wish.setDueDate(wishDTO.getDueDate());
 
         // Don't update completed status here, use markWishAsCompleted instead
-
         Wish updatedWish = wishRepository.save(wish);
 
         // Evict caches
@@ -143,49 +139,33 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    public List<WishDTO> getCompletedWishes(Long userId) {
+    public List<WishDTO> getCompletedWishes() {
         User currentUser = authService.getCurrentUser();
-        if (!currentUser.getId().equals(userId)) {
-            throw new UnauthorizedException("You are not authorized to view these wishes");
-        }
-
-        return wishRepository.findByUserIdAndCompletedTrue(userId).stream()
+        return wishRepository.findByUserIdAndCompletedTrue(currentUser.getId()).stream()
                 .map(this::convertToDTO)
                 .toList();
     }
 
     @Override
-    public List<WishDTO> getPendingWishes(Long userId) {
+    public List<WishDTO> getPendingWishes() {
         User currentUser = authService.getCurrentUser();
-        if (!currentUser.getId().equals(userId)) {
-            throw new UnauthorizedException("You are not authorized to view these wishes");
-        }
-
-        return wishRepository.findByUserIdAndCompletedFalse(userId).stream()
+        return wishRepository.findByUserIdAndCompletedFalse(currentUser.getId()).stream()
                 .map(this::convertToDTO)
                 .toList();
     }
 
     @Override
-    public List<WishDTO> getWishesByCategory(Long userId, String category) {
+    public List<WishDTO> getWishesByCategory(String category) {
         User currentUser = authService.getCurrentUser();
-        if (!currentUser.getId().equals(userId)) {
-            throw new UnauthorizedException("You are not authorized to view these wishes");
-        }
-
-        return wishRepository.findByUserIdAndCategory(userId, category).stream()
+        return wishRepository.findByUserIdAndCategory(currentUser.getId(), category).stream()
                 .map(this::convertToDTO)
                 .toList();
     }
 
     @Override
-    public List<WishDTO> searchWishes(Long userId, String searchTerm) {
+    public List<WishDTO> searchWishes(String searchTerm) {
         User currentUser = authService.getCurrentUser();
-        if (!currentUser.getId().equals(userId)) {
-            throw new UnauthorizedException("You are not authorized to view these wishes");
-        }
-
-        return wishRepository.searchUserWishes(userId, searchTerm).stream()
+        return wishRepository.searchUserWishes(currentUser.getId(), searchTerm).stream()
                 .map(this::convertToDTO)
                 .toList();
     }

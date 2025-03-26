@@ -10,7 +10,7 @@ public interface WishlistService {
 
     WishlistDTO getUserWishes(Long userId, Pageable pageable);
 
-    WishDTO getWishById(Long wishId);
+    WishDTO getUserWishById(Long wishId, Long userId);
 
     WishDTO createWish(WishDTO wishDTO);
 
@@ -20,11 +20,11 @@ public interface WishlistService {
 
     WishDTO markWishAsCompleted(Long wishId);
 
-    List<WishDTO> getCompletedWishes(Long userId);
+    List<WishDTO> getCompletedWishes();
 
-    List<WishDTO> getPendingWishes(Long userId);
+    List<WishDTO> getPendingWishes();
 
-    List<WishDTO> getWishesByCategory(Long userId, String category);
+    List<WishDTO> getWishesByCategory(String category);
 
-    List<WishDTO> searchWishes(Long userId, String searchTerm);
+    List<WishDTO> searchWishes(String searchTerm);
 }

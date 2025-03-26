@@ -44,7 +44,9 @@ public class WishlistController {
 
     @GetMapping("/{wishId}")
     public ResponseEntity<WishDTO> getWishById(@PathVariable Long wishId) {
-        WishDTO wishDTO = wishlistService.getWishById(wishId);
+        // Get the current user's ID from the authentication service
+        Long userId = authService.getCurrentUser().getId();
+        WishDTO wishDTO = wishlistService.getUserWishById(wishId, userId);
         return ResponseEntity.ok(wishDTO);
     }
 
@@ -77,29 +79,25 @@ public class WishlistController {
 
     @GetMapping("/completed")
     public ResponseEntity<List<WishDTO>> getCompletedWishes() {
-        Long userId = authService.getCurrentUser().getId();
-        List<WishDTO> completedWishes = wishlistService.getCompletedWishes(userId);
+        List<WishDTO> completedWishes = wishlistService.getCompletedWishes();
         return ResponseEntity.ok(completedWishes);
     }
 
     @GetMapping("/pending")
     public ResponseEntity<List<WishDTO>> getPendingWishes() {
-        Long userId = authService.getCurrentUser().getId();
-        List<WishDTO> pendingWishes = wishlistService.getPendingWishes(userId);
+        List<WishDTO> pendingWishes = wishlistService.getPendingWishes();
         return ResponseEntity.ok(pendingWishes);
     }
 
     @GetMapping("/category/{category}")
     public ResponseEntity<List<WishDTO>> getWishesByCategory(@PathVariable String category) {
-        Long userId = authService.getCurrentUser().getId();
-        List<WishDTO> wishesByCategory = wishlistService.getWishesByCategory(userId, category);
+        List<WishDTO> wishesByCategory = wishlistService.getWishesByCategory(category);
         return ResponseEntity.ok(wishesByCategory);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<WishDTO>> searchWishes(@RequestParam String term) {
-        Long userId = authService.getCurrentUser().getId();
-        List<WishDTO> searchResults = wishlistService.searchWishes(userId, term);
+        List<WishDTO> searchResults = wishlistService.searchWishes(term);
         return ResponseEntity.ok(searchResults);
     }
 }
