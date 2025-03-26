@@ -15,6 +15,13 @@ spring:
       maximum-pool-size: 20
       minimum-idle: 10
 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
   # JPA Configuration
   jpa:
     hibernate.ddl-auto: update
