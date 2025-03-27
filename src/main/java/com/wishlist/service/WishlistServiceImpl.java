@@ -25,6 +25,7 @@ public class WishlistServiceImpl implements WishlistService {
     private final AuthService authService;
     private final CacheService cacheService;
 
+    //TODO: fix incorrect behavior
     @Override
     @Cacheable(value = USER_WISHES_CACHE_NAME, key = "#userId")
     public WishlistDTO getUserWishes(Long userId, Pageable pageable) {
