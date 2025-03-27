@@ -3,14 +3,11 @@ package com.wishlist.service;
 import com.wishlist.dto.WishDTO;
 import com.wishlist.dto.WishlistDTO;
 import com.wishlist.exception.ResourceNotFoundException;
-import com.wishlist.exception.UnauthorizedException;
 import com.wishlist.model.User;
 import com.wishlist.model.Wish;
 import com.wishlist.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,23 +28,10 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     @Cacheable(value = USER_WISHES_CACHE_NAME, key = "#userId")
     public WishlistDTO getUserWishes(Long userId, Pageable pageable) {
-        User currentUser = authService.getCurrentUser();
-        if (!currentUser.getId().equals(userId)) {
-            throw new UnauthorizedException("You are not authorized to view these wishes");
-        }
-
-        Page<Wish> wishPage = wishRepository.findByUserId(userId, pageable);
-
-        List<WishDTO> wishes = wishPage.getContent().stream()
+        var allUserWishes = wishRepository.findByUserId(userId, Pageable.unpaged()).stream()
                 .map(this::convertToDTO)
                 .toList();
-
-        return WishlistDTO.builder()
-                .wishes(wishes)
-                .totalItems(wishPage.getTotalElements())
-                .totalPages(wishPage.getTotalPages())
-                .currentPage(pageable.getPageNumber())
-                .build();
+        return getPagedWishlist(allUserWishes, pageable);
     }
 
     @Override
@@ -80,7 +64,6 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"wish", "userWishes"}, allEntries = true)
     public WishDTO updateWish(Long wishId, WishDTO wishDTO) {
         User currentUser = authService.getCurrentUser();
 
@@ -97,7 +80,7 @@ public class WishlistServiceImpl implements WishlistService {
         Wish updatedWish = wishRepository.save(wish);
 
         // Evict caches
-        cacheService.evictWishCache(wishId);
+        cacheService.evictWishCache(wishId, currentUser.getId());
         cacheService.evictUserWishesCache(currentUser.getId());
 
         return convertToDTO(updatedWish);
@@ -105,7 +88,6 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"wish", "userWishes"}, allEntries = true)
     public void deleteWish(Long wishId) {
         User currentUser = authService.getCurrentUser();
 
@@ -115,13 +97,12 @@ public class WishlistServiceImpl implements WishlistService {
         wishRepository.delete(wish);
 
         // Evict caches
-        cacheService.evictWishCache(wishId);
+        cacheService.evictWishCache(wishId, currentUser.getId());
         cacheService.evictUserWishesCache(currentUser.getId());
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"wish", "userWishes"}, allEntries = true)
     public WishDTO markWishAsCompleted(Long wishId) {
         User currentUser = authService.getCurrentUser();
 
@@ -132,13 +113,14 @@ public class WishlistServiceImpl implements WishlistService {
         Wish updatedWish = wishRepository.save(wish);
 
         // Evict caches
-        cacheService.evictWishCache(wishId);
+        cacheService.evictWishCache(wishId, currentUser.getId());
         cacheService.evictUserWishesCache(currentUser.getId());
 
         return convertToDTO(updatedWish);
     }
 
     @Override
+    // TODO: work with cache
     public List<WishDTO> getCompletedWishes() {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCompletedTrue(currentUser.getId()).stream()
@@ -147,6 +129,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    // TODO: work with cache
     public List<WishDTO> getPendingWishes() {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCompletedFalse(currentUser.getId()).stream()
@@ -155,6 +138,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    // TODO: work with cache
     public List<WishDTO> getWishesByCategory(String category) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCategory(currentUser.getId(), category).stream()
@@ -163,6 +147,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    // TODO: work with cache
     public List<WishDTO> searchWishes(String searchTerm) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.searchUserWishes(currentUser.getId(), searchTerm).stream()
@@ -183,6 +168,25 @@ public class WishlistServiceImpl implements WishlistService {
                 .completedAt(wish.getCompletedAt())
                 .createdAt(wish.getCreatedAt())
                 .updatedAt(wish.getUpdatedAt())
+                .build();
+    }
+
+    private static WishlistDTO getPagedWishlist(List<WishDTO> wishes, Pageable pageable) {
+        var totalItems = wishes.size();
+        var pageSize = pageable.getPageSize();
+        var currentPage = pageable.getPageNumber();
+        var totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        var wishesPage = wishes.stream()
+                .skip((long) currentPage * pageSize)
+                .limit(pageSize)
+                .toList();
+
+        return WishlistDTO.builder()
+                .wishes(wishesPage)
+                .totalItems(totalItems)
+                .totalPages(totalPages)
+                .currentPage(currentPage)
                 .build();
     }
 }

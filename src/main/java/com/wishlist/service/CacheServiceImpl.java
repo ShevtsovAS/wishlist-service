@@ -24,10 +24,10 @@ public class CacheServiceImpl implements CacheService {
     }
 
     @Override
-    public void evictWishCache(Long wishId) {
+    public void evictWishCache(Long wishId, Long userId) {
         Optional.ofNullable(cacheManager.getCache(WISH_CACHE_NAME))
                 .orElseThrow(() -> new IllegalStateException("Couldn't create cache " + WISH_CACHE_NAME))
-                .evict(wishId);
+                .evict(wishId + "_" + userId);
     }
 
     @Override

@@ -35,17 +35,14 @@ public class WishlistController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
 
-        // Get the current user's ID from the authentication service
-        Long userId = authService.getCurrentUser().getId();
-
+        var userId = authService.getCurrentUser().getId();
         WishlistDTO wishlistDTO = wishlistService.getUserWishes(userId, pageable);
         return ResponseEntity.ok(wishlistDTO);
     }
 
     @GetMapping("/{wishId}")
     public ResponseEntity<WishDTO> getWishById(@PathVariable Long wishId) {
-        // Get the current user's ID from the authentication service
-        Long userId = authService.getCurrentUser().getId();
+        var userId = authService.getCurrentUser().getId();
         WishDTO wishDTO = wishlistService.getUserWishById(wishId, userId);
         return ResponseEntity.ok(wishDTO);
     }

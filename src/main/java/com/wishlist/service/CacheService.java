@@ -4,7 +4,7 @@ public interface CacheService {
 
     void evictUserWishesCache(Long userId);
 
-    void evictWishCache(Long wishId);
+    void evictWishCache(Long wishId, Long userId);
 
     @SuppressWarnings("unused")
     void evictAllCaches();
