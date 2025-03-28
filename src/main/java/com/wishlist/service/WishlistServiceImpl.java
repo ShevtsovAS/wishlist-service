@@ -9,12 +9,12 @@ import com.wishlist.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.wishlist.service.CacheServiceImpl.USER_WISHES_CACHE_NAME;
 import static com.wishlist.service.CacheServiceImpl.WISH_CACHE_NAME;
 
 @Service
@@ -25,18 +25,21 @@ public class WishlistServiceImpl implements WishlistService {
     private final AuthService authService;
     private final CacheService cacheService;
 
-    //TODO: fix incorrect behavior
     @Override
-    @Cacheable(value = USER_WISHES_CACHE_NAME, key = "#userId")
     public WishlistDTO getUserWishes(Long userId, Pageable pageable) {
-        var allUserWishes = wishRepository.findByUserId(userId, Pageable.unpaged()).stream()
-                .map(this::convertToDTO)
-                .toList();
-        return getPagedWishlist(allUserWishes, pageable);
+        var userWishes = cacheService.getUserWishesPage(userId, pageable);
+
+        if (userWishes.isEmpty()) {
+            updateUserWishesCache(userId, pageable.getSort());
+            userWishes = cacheService.getUserWishesPage(userId, pageable);
+        }
+
+        var totalItems = cacheService.getUserWishesTotalCount(userId, pageable.getSort());
+        return buildResult(userWishes, totalItems, pageable);
     }
 
     @Override
-    @Cacheable(value = WISH_CACHE_NAME, key = "#wishId + '_' + #userId")
+    @Cacheable(value = WISH_CACHE_NAME, key = "#wishId + '::' + #userId")
     public WishDTO getUserWishById(Long wishId, Long userId) {
         Wish wish = wishRepository.findByIdAndUserId(wishId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wish not found with id: " + wishId));
@@ -172,22 +175,24 @@ public class WishlistServiceImpl implements WishlistService {
                 .build();
     }
 
-    private static WishlistDTO getPagedWishlist(List<WishDTO> wishes, Pageable pageable) {
-        var totalItems = wishes.size();
+    private static WishlistDTO buildResult(List<WishDTO> wishes, long totalItems, Pageable pageable) {
         var pageSize = pageable.getPageSize();
         var currentPage = pageable.getPageNumber();
         var totalPages = (int) Math.ceil((double) totalItems / pageSize);
 
-        var wishesPage = wishes.stream()
-                .skip((long) currentPage * pageSize)
-                .limit(pageSize)
-                .toList();
-
         return WishlistDTO.builder()
-                .wishes(wishesPage)
+                .wishes(wishes)
                 .totalItems(totalItems)
                 .totalPages(totalPages)
                 .currentPage(currentPage)
                 .build();
     }
+
+    private void updateUserWishesCache(Long userId, Sort sort) {
+        var allUserWishesSorted = wishRepository.findByUserId(userId, Pageable.unpaged(sort)).stream()
+                .map(this::convertToDTO)
+                .toList();
+        cacheService.cacheUserWishes(userId, allUserWishesSorted, sort);
+    }
+
 }
