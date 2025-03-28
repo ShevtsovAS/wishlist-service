@@ -16,6 +16,12 @@ public interface CacheService {
 
     void evictUserWishesCache(Long userId);
 
+    void evictUserCompletedWishesCache(Long userId);
+
+    void evictUserPendingWishesCache(Long userId);
+
+    void evictUserCategoryWishesCache(Long userId);
+
     void evictWishCache(Long wishId, Long userId);
 
     @SuppressWarnings("unused")

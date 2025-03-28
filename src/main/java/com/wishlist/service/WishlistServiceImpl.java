@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.wishlist.service.CacheServiceImpl.WISH_CACHE_NAME;
+import static com.wishlist.service.CacheServiceImpl.*;
 
 @Service
 @RequiredArgsConstructor
@@ -63,6 +63,8 @@ public class WishlistServiceImpl implements WishlistService {
 
         Wish savedWish = wishRepository.save(wish);
         cacheService.evictUserWishesCache(currentUser.getId());
+        cacheService.evictUserPendingWishesCache(currentUser.getId());
+        cacheService.evictUserCategoryWishesCache(currentUser.getId());
         return convertToDTO(savedWish);
     }
 
@@ -86,6 +88,9 @@ public class WishlistServiceImpl implements WishlistService {
         // Evict caches
         cacheService.evictWishCache(wishId, currentUser.getId());
         cacheService.evictUserWishesCache(currentUser.getId());
+        cacheService.evictUserCompletedWishesCache(currentUser.getId());
+        cacheService.evictUserPendingWishesCache(currentUser.getId());
+        cacheService.evictUserCategoryWishesCache(currentUser.getId());
 
         return convertToDTO(updatedWish);
     }
@@ -103,6 +108,12 @@ public class WishlistServiceImpl implements WishlistService {
         // Evict caches
         cacheService.evictWishCache(wishId, currentUser.getId());
         cacheService.evictUserWishesCache(currentUser.getId());
+        if (wish.isCompleted()) {
+            cacheService.evictUserCompletedWishesCache(currentUser.getId());
+        } else {
+            cacheService.evictUserPendingWishesCache(currentUser.getId());
+        }
+        cacheService.evictUserCategoryWishesCache(currentUser.getId());
     }
 
     @Override
@@ -119,13 +130,15 @@ public class WishlistServiceImpl implements WishlistService {
         // Evict caches
         cacheService.evictWishCache(wishId, currentUser.getId());
         cacheService.evictUserWishesCache(currentUser.getId());
+        cacheService.evictUserCompletedWishesCache(currentUser.getId());
+        cacheService.evictUserPendingWishesCache(currentUser.getId());
 
         return convertToDTO(updatedWish);
     }
 
     @Override
-    // TODO: work with cache
-    public List<WishDTO> getCompletedWishes() {
+    @Cacheable(value = COMPLETED_WISHES_CACHE_NAME, key = "#userId")
+    public List<WishDTO> getCompletedWishes(Long userId) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCompletedTrue(currentUser.getId()).stream()
                 .map(this::convertToDTO)
@@ -133,8 +146,8 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    // TODO: work with cache
-    public List<WishDTO> getPendingWishes() {
+    @Cacheable(value = PENDING_WISHES_CACHE_NAME, key = "#userId")
+    public List<WishDTO> getPendingWishes(Long userId) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCompletedFalse(currentUser.getId()).stream()
                 .map(this::convertToDTO)
@@ -142,8 +155,8 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    // TODO: work with cache
-    public List<WishDTO> getWishesByCategory(String category) {
+    @Cacheable(value = CATEGORY_WISHES_CACHE_NAME, key = "#category + '::' + #userId")
+    public List<WishDTO> getWishesByCategory(String category, Long userId) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCategory(currentUser.getId(), category).stream()
                 .map(this::convertToDTO)
@@ -151,7 +164,6 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    // TODO: work with cache
     public List<WishDTO> searchWishes(String searchTerm) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.searchUserWishes(currentUser.getId(), searchTerm).stream()

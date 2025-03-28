@@ -23,6 +23,9 @@ public class CacheServiceImpl implements CacheService {
     private long timeToLive;
 
     public static final String WISH_CACHE_NAME = "wish";
+    public static final String COMPLETED_WISHES_CACHE_NAME = "completedWishes";
+    public static final String PENDING_WISHES_CACHE_NAME = "pendingWishes";
+    public static final String CATEGORY_WISHES_CACHE_NAME = "categoryWishes";
     public static final String USER_WISHES_CACHE_NAME = "userWishes";
 
     private final CacheManager cacheManager;
@@ -68,10 +71,31 @@ public class CacheServiceImpl implements CacheService {
     }
 
     @Override
+    public void evictUserCompletedWishesCache(Long userId) {
+        Optional.ofNullable(cacheManager.getCache(COMPLETED_WISHES_CACHE_NAME))
+                .orElseThrow(() -> new IllegalStateException("Couldn't create cache " + COMPLETED_WISHES_CACHE_NAME))
+                .evict(userId);
+    }
+
+    @Override
+    public void evictUserPendingWishesCache(Long userId) {
+        Optional.ofNullable(cacheManager.getCache(PENDING_WISHES_CACHE_NAME))
+                .orElseThrow(() -> new IllegalStateException("Couldn't create cache " + PENDING_WISHES_CACHE_NAME))
+                .evict(userId);
+    }
+
+    @Override
+    public void evictUserCategoryWishesCache(Long userId) {
+        Optional.ofNullable(cacheManager.getCache(CATEGORY_WISHES_CACHE_NAME))
+                .orElseThrow(() -> new IllegalStateException("Couldn't create cache " + CATEGORY_WISHES_CACHE_NAME))
+                .evict(userId);
+    }
+
+    @Override
     public void evictWishCache(Long wishId, Long userId) {
         Optional.ofNullable(cacheManager.getCache(WISH_CACHE_NAME))
                 .orElseThrow(() -> new IllegalStateException("Couldn't create cache " + WISH_CACHE_NAME))
-                .evict(wishId + "_" + userId);
+                .evict(wishId + "::" + userId);
     }
 
     @Override

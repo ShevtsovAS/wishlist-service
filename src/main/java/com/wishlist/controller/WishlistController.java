@@ -7,7 +7,6 @@ import com.wishlist.service.WishlistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,21 +28,17 @@ public class WishlistController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
-
-        Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ?
-                Sort.Direction.ASC : Sort.Direction.DESC;
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
-
+        var sortDirection = direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        var pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
         var userId = authService.getCurrentUser().getId();
-        WishlistDTO wishlistDTO = wishlistService.getUserWishes(userId, pageable);
+        var wishlistDTO = wishlistService.getUserWishes(userId, pageable);
         return ResponseEntity.ok(wishlistDTO);
     }
 
     @GetMapping("/{wishId}")
     public ResponseEntity<WishDTO> getWishById(@PathVariable Long wishId) {
         var userId = authService.getCurrentUser().getId();
-        WishDTO wishDTO = wishlistService.getUserWishById(wishId, userId);
+        var wishDTO = wishlistService.getUserWishById(wishId, userId);
         return ResponseEntity.ok(wishDTO);
     }
 
@@ -57,8 +52,7 @@ public class WishlistController {
     public ResponseEntity<WishDTO> updateWish(
             @PathVariable Long wishId,
             @Valid @RequestBody WishDTO wishDTO) {
-
-        WishDTO updatedWish = wishlistService.updateWish(wishId, wishDTO);
+        var updatedWish = wishlistService.updateWish(wishId, wishDTO);
         return ResponseEntity.ok(updatedWish);
     }
 
@@ -70,31 +64,34 @@ public class WishlistController {
 
     @PatchMapping("/{wishId}/complete")
     public ResponseEntity<WishDTO> markWishAsCompleted(@PathVariable Long wishId) {
-        WishDTO completedWish = wishlistService.markWishAsCompleted(wishId);
+        var completedWish = wishlistService.markWishAsCompleted(wishId);
         return ResponseEntity.ok(completedWish);
     }
 
     @GetMapping("/completed")
     public ResponseEntity<List<WishDTO>> getCompletedWishes() {
-        List<WishDTO> completedWishes = wishlistService.getCompletedWishes();
+        var userId = authService.getCurrentUser().getId();
+        var completedWishes = wishlistService.getCompletedWishes(userId);
         return ResponseEntity.ok(completedWishes);
     }
 
     @GetMapping("/pending")
     public ResponseEntity<List<WishDTO>> getPendingWishes() {
-        List<WishDTO> pendingWishes = wishlistService.getPendingWishes();
+        var userId = authService.getCurrentUser().getId();
+        var pendingWishes = wishlistService.getPendingWishes(userId);
         return ResponseEntity.ok(pendingWishes);
     }
 
     @GetMapping("/category/{category}")
     public ResponseEntity<List<WishDTO>> getWishesByCategory(@PathVariable String category) {
-        List<WishDTO> wishesByCategory = wishlistService.getWishesByCategory(category);
+        var userId = authService.getCurrentUser().getId();
+        var wishesByCategory = wishlistService.getWishesByCategory(category, userId);
         return ResponseEntity.ok(wishesByCategory);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<WishDTO>> searchWishes(@RequestParam String term) {
-        List<WishDTO> searchResults = wishlistService.searchWishes(term);
+        var searchResults = wishlistService.searchWishes(term);
         return ResponseEntity.ok(searchResults);
     }
 }

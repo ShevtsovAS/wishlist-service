@@ -20,11 +20,11 @@ public interface WishlistService {
 
     WishDTO markWishAsCompleted(Long wishId);
 
-    List<WishDTO> getCompletedWishes();
+    List<WishDTO> getCompletedWishes(Long userId);
 
-    List<WishDTO> getPendingWishes();
+    List<WishDTO> getPendingWishes(Long userId);
 
-    List<WishDTO> getWishesByCategory(String category);
+    List<WishDTO> getWishesByCategory(String category, Long userId);
 
     List<WishDTO> searchWishes(String searchTerm);
 }
