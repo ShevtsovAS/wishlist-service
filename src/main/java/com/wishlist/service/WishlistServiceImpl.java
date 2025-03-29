@@ -6,6 +6,7 @@ import com.wishlist.exception.ResourceNotFoundException;
 import com.wishlist.model.User;
 import com.wishlist.model.Wish;
 import com.wishlist.repository.WishRepository;
+import com.wishlist.service.mapper.WishMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ public class WishlistServiceImpl implements WishlistService {
     private final WishRepository wishRepository;
     private final AuthService authService;
     private final CacheService cacheService;
+    private final WishMapper wishMapper;
 
     @Override
     public WishlistDTO getUserWishes(Long userId, Pageable pageable) {
@@ -43,7 +45,7 @@ public class WishlistServiceImpl implements WishlistService {
     public WishDTO getUserWishById(Long wishId, Long userId) {
         Wish wish = wishRepository.findByIdAndUserId(wishId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wish not found with id: " + wishId));
-        return convertToDTO(wish);
+        return wishMapper.map(wish);
     }
 
     @Override
@@ -51,21 +53,13 @@ public class WishlistServiceImpl implements WishlistService {
     public WishDTO createWish(WishDTO wishDTO) {
         User currentUser = authService.getCurrentUser();
 
-        Wish wish = Wish.builder()
-                .title(wishDTO.getTitle())
-                .description(wishDTO.getDescription())
-                .completed(false)
-                .priority(wishDTO.getPriority())
-                .category(wishDTO.getCategory())
-                .dueDate(wishDTO.getDueDate())
-                .user(currentUser)
-                .build();
+        Wish wish = wishMapper.map(wishDTO, currentUser);
 
         Wish savedWish = wishRepository.save(wish);
         cacheService.evictUserWishesCache(currentUser.getId());
         cacheService.evictUserPendingWishesCache(currentUser.getId());
         cacheService.evictUserCategoryWishesCache(currentUser.getId());
-        return convertToDTO(savedWish);
+        return wishMapper.map(savedWish);
     }
 
     @Override
@@ -92,7 +86,7 @@ public class WishlistServiceImpl implements WishlistService {
         cacheService.evictUserPendingWishesCache(currentUser.getId());
         cacheService.evictUserCategoryWishesCache(currentUser.getId());
 
-        return convertToDTO(updatedWish);
+        return wishMapper.map(updatedWish);
     }
 
     @Override
@@ -133,7 +127,7 @@ public class WishlistServiceImpl implements WishlistService {
         cacheService.evictUserCompletedWishesCache(currentUser.getId());
         cacheService.evictUserPendingWishesCache(currentUser.getId());
 
-        return convertToDTO(updatedWish);
+        return wishMapper.map(updatedWish);
     }
 
     @Override
@@ -141,7 +135,7 @@ public class WishlistServiceImpl implements WishlistService {
     public List<WishDTO> getCompletedWishes(Long userId) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCompletedTrue(currentUser.getId()).stream()
-                .map(this::convertToDTO)
+                .map(wishMapper::map)
                 .toList();
     }
 
@@ -150,7 +144,7 @@ public class WishlistServiceImpl implements WishlistService {
     public List<WishDTO> getPendingWishes(Long userId) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCompletedFalse(currentUser.getId()).stream()
-                .map(this::convertToDTO)
+                .map(wishMapper::map)
                 .toList();
     }
 
@@ -159,7 +153,7 @@ public class WishlistServiceImpl implements WishlistService {
     public List<WishDTO> getWishesByCategory(String category, Long userId) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.findByUserIdAndCategory(currentUser.getId(), category).stream()
-                .map(this::convertToDTO)
+                .map(wishMapper::map)
                 .toList();
     }
 
@@ -167,24 +161,8 @@ public class WishlistServiceImpl implements WishlistService {
     public List<WishDTO> searchWishes(String searchTerm) {
         User currentUser = authService.getCurrentUser();
         return wishRepository.searchUserWishes(currentUser.getId(), searchTerm).stream()
-                .map(this::convertToDTO)
+                .map(wishMapper::map)
                 .toList();
-    }
-
-    // Helper method to convert Wish entity to WishDTO
-    private WishDTO convertToDTO(Wish wish) {
-        return WishDTO.builder()
-                .id(wish.getId())
-                .title(wish.getTitle())
-                .description(wish.getDescription())
-                .completed(wish.isCompleted())
-                .priority(wish.getPriority())
-                .category(wish.getCategory())
-                .dueDate(wish.getDueDate())
-                .completedAt(wish.getCompletedAt())
-                .createdAt(wish.getCreatedAt())
-                .updatedAt(wish.getUpdatedAt())
-                .build();
     }
 
     private static WishlistDTO buildResult(List<WishDTO> wishes, long totalItems, Pageable pageable) {
@@ -202,7 +180,7 @@ public class WishlistServiceImpl implements WishlistService {
 
     private void updateUserWishesCache(Long userId, Sort sort) {
         var allUserWishesSorted = wishRepository.findByUserId(userId, Pageable.unpaged(sort)).stream()
-                .map(this::convertToDTO)
+                .map(wishMapper::map)
                 .toList();
         cacheService.cacheUserWishes(userId, allUserWishesSorted, sort);
     }
