@@ -77,16 +77,21 @@ public class WishlistServiceImpl implements WishlistService {
         wish.setDueDate(wishDTO.getDueDate());
 
         // Don't update completed status here, use markWishAsCompleted instead
+        var updatedWish = getUpdatedWish(wish, currentUser);
+
+        return wishMapper.map(updatedWish);
+    }
+
+    private Wish getUpdatedWish(Wish wish, User currentUser) {
         Wish updatedWish = wishRepository.save(wish);
 
         // Evict caches
-        cacheService.evictWishCache(wishId, currentUser.getId());
+        cacheService.evictWishCache(wish.getId(), currentUser.getId());
         cacheService.evictUserWishesCache(currentUser.getId());
         cacheService.evictUserCompletedWishesCache(currentUser.getId());
         cacheService.evictUserPendingWishesCache(currentUser.getId());
         cacheService.evictUserCategoryWishesCache(currentUser.getId());
-
-        return wishMapper.map(updatedWish);
+        return updatedWish;
     }
 
     @Override
@@ -119,13 +124,7 @@ public class WishlistServiceImpl implements WishlistService {
                 .orElseThrow(() -> new ResourceNotFoundException("Wish not found with id: " + wishId));
 
         wish.markAsCompleted();
-        Wish updatedWish = wishRepository.save(wish);
-
-        // Evict caches
-        cacheService.evictWishCache(wishId, currentUser.getId());
-        cacheService.evictUserWishesCache(currentUser.getId());
-        cacheService.evictUserCompletedWishesCache(currentUser.getId());
-        cacheService.evictUserPendingWishesCache(currentUser.getId());
+        var updatedWish = getUpdatedWish(wish, currentUser);
 
         return wishMapper.map(updatedWish);
     }
