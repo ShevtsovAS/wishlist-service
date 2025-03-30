@@ -4,6 +4,7 @@ import com.wishlist.dto.AuthRequest;
 import com.wishlist.dto.AuthResponse;
 import com.wishlist.dto.SignupRequest;
 import com.wishlist.exception.ResourceNotFoundException;
+import com.wishlist.exception.UnauthorizedException;
 import com.wishlist.model.User;
 import com.wishlist.repository.UserRepository;
 import com.wishlist.security.JwtTokenProvider;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +71,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .orElseThrow(() -> new UnauthorizedException("Unauthorized"));
         return userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("Current user not found"));
     }
