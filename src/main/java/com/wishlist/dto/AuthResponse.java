@@ -1,15 +1,13 @@
 package com.wishlist.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // Authentication Response DTO
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Generated
 public class AuthResponse {
 
     private String accessToken;

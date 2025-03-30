@@ -1,16 +1,14 @@
 package com.wishlist.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // Authentication Request DTO
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Generated
 public class AuthRequest {
 
     @NotBlank(message = "Username is required")
