@@ -93,5 +93,26 @@ Feel free to expand based on your deployment workflow.
 
 ---
 
+## 🗺️ Plans
+
+As the application grows, we aim to evolve it into a microservices-based architecture. Here's a high-level plan:
+
+- Split the monolith into dedicated microservices:
+   - `AuthService` (authentication, JWT issuance)
+   - `WishService` (CRUD operations, Redis caching)
+   - `SearchService` (full-text search using Elasticsearch)
+   - `AnalyticsService` (optional, for usage tracking and trends)
+   - `NotificationService` (optional, for reminders/alerts)
+- Use **Apache Kafka** for inter-service event streaming
+- Introduce **Spring Cloud Gateway** for centralized routing and JWT validation
+- Scale each service independently
+- Store data in optimal formats for each service (PostgreSQL, Redis, Elasticsearch)
+
+### Architecture Diagram
+
+![Microservices Architecture](assets/architecture.png)
+
+---
+
 ## 📝 License
 MIT
