@@ -4,7 +4,7 @@ server.port: ${SERVER_PORT:8080}
 spring:
   h2.console.enabled: false
   datasource:
-    url: dbc:postgresql://localhost:5432/wishlistdb
+    url: ${DB_URL}
     driverClassName: org.postgresql.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
