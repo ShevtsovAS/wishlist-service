@@ -82,8 +82,6 @@ You can access the Swagger UI when the app is running:
 
 [http://localhost:8080/api/swagger-ui/index.html](http://localhost:8080/api/swagger-ui/index.html)
 
-Make sure Swagger dependencies (e.g., `springdoc-openapi`) are included.
-
 ---
 
 ## 🔄 CI/CD

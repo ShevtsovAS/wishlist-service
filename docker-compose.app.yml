@@ -16,6 +16,9 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     env_file:
       - .env
+    labels:
+      - "swagger.docs.enabled=true"
+      - "swagger.docs.path=/api/swagger-ui.html"
     depends_on:
       - postgres
       - redis
