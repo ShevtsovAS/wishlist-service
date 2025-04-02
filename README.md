@@ -23,7 +23,7 @@ The application will be available at: [http://localhost:8080](http://localhost:8
 
 ## 🐞 Remote Debugging
 
-1. Make sure port 5005 is exposed in `docker-compose.app.yml`
+1. Make sure port 5005 is exposed in `docker-compose.debug.yml`
 
 2. Ensure your `.env` contains:
 ```env
@@ -48,10 +48,16 @@ JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=
   make up-app     # Start app + databases
 ```
 ```bash
+  make up-debug   # Start app + databases in remote debug mode
+```
+```bash
   make down       # Stop and remove databases and volumes
 ```
 ```bash
   make down-app   # Stop and remove everything
+```
+```bash
+  make down-debug # Stop and remove everything running in remote debug mode
 ```
 ```bash
   make restart    # Rebuild and restart everything

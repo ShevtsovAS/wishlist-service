@@ -12,6 +12,12 @@ up-app:
 down-app:
 	docker-compose -f docker-compose.yml -f docker-compose.app.yml down -v
 
+up-debug:
+	docker-compose -f docker-compose.yml -f docker-compose.debug.yml up -d --build
+
+down-debug:
+	docker-compose -f docker-compose.yml -f docker-compose.debug.yml down -v
+
 logs:
 	docker-compose logs -f
 
