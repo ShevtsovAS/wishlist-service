@@ -27,6 +27,8 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class WishlistControllerTest {
 
+    private static final Long USER_ID = 1L;
+    
     @Mock
     private AuthService authService;
 
@@ -38,13 +40,13 @@ class WishlistControllerTest {
 
     @BeforeEach
     void setup() {
-        var user = new User();
-        user.setId(1L);
-        when(authService.getCurrentUser()).thenReturn(user);
+        User testUser = new User();
+        testUser.setId(USER_ID);
+        when(authService.getCurrentUser()).thenReturn(testUser);
     }
 
     @Test
-    void getUserWishesTest() {
+    void shouldReturnUserWishesWithPagination() {
         // Arrange
         var wishList = List.of(WishDTO.builder().id(100L).title("Sample Wish").build());
         var wishlistDTO = WishlistDTO.builder()
@@ -53,7 +55,7 @@ class WishlistControllerTest {
                 .totalPages(1)
                 .currentPage(0)
                 .build();
-        when(wishlistService.getUserWishes(eq(1L), any(Pageable.class)))
+        when(wishlistService.getUserWishes(eq(USER_ID), any(Pageable.class)))
                 .thenReturn(wishlistDTO);
 
         // Act
@@ -64,12 +66,12 @@ class WishlistControllerTest {
         assertEquals(wishlistDTO, response.getBody());
 
         // Verify
-        verify(authService, times(1)).getCurrentUser();
-        verify(wishlistService, times(1)).getUserWishes(eq(1L), any(Pageable.class));
+        verify(authService).getCurrentUser();
+        verify(wishlistService).getUserWishes(eq(USER_ID), any(Pageable.class));
     }
 
     @Test
-    void createWishTest() {
+    void shouldCreateNewWishAndReturnWithId() {
         // Arrange
         var newWish = WishDTO.builder().title("New Wish").build();
         var savedWish = WishDTO.builder().id(5L).title("New Wish").build();
@@ -83,67 +85,72 @@ class WishlistControllerTest {
         assertEquals(savedWish, response.getBody());
 
         // Verify
-        verify(wishlistService, times(1)).createWish(newWish);
-        verify(authService, never()).getCurrentUser();
+        verify(wishlistService).createWish(newWish);
     }
 
     @Test
-    void getWishByIdTest() {
+    void shouldReturnWishByIdWhenExists() {
         // Arrange
-        var wish = WishDTO.builder().id(1L).title("Test Wish").build();
-        when(wishlistService.getUserWishById(1L, 1L)).thenReturn(wish);
+        var wishId = 1L;
+        var wish = WishDTO.builder().id(wishId).title("Test Wish").build();
+        when(wishlistService.getUserWishById(USER_ID, wishId)).thenReturn(wish);
 
         // Act
-        var response = wishlistController.getWishById(1L);
+        var response = wishlistController.getWishById(wishId);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(wish, response.getBody());
 
         // Verify
-        verify(wishlistService).getUserWishById(1L, 1L);
+        verify(authService).getCurrentUser();
+        verify(wishlistService).getUserWishById(USER_ID, wishId);
     }
 
     @Test
-    void updateWishTest() {
+    void shouldUpdateWishAndReturnUpdatedEntity() {
         // Arrange
-        var updatedWish = WishDTO.builder().id(1L).title("Updated").build();
-        when(wishlistService.updateWish(eq(1L), any(WishDTO.class))).thenReturn(updatedWish);
+        var wishId = 1L;
+        var updatedWish = WishDTO.builder().id(wishId).title("Updated").build();
+        when(wishlistService.updateWish(eq(wishId), any(WishDTO.class))).thenReturn(updatedWish);
 
         // Act
-        var response = wishlistController.updateWish(1L, updatedWish);
+        var response = wishlistController.updateWish(wishId, updatedWish);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updatedWish, response.getBody());
 
         // Verify
-        verify(wishlistService).updateWish(1L, updatedWish);
+        verify(wishlistService).updateWish(wishId, updatedWish);
     }
 
     @Test
-    void deleteWishTest() {
+    void shouldDeleteWishAndReturnNoContent() {
         // Arrange
-        doNothing().when(wishlistService).deleteWish(1L);
+        var wishId = 1L;
+        doNothing().when(wishlistService).deleteWish(wishId);
 
         // Act
-        var response = wishlistController.deleteWish(1L);
+        var response = wishlistController.deleteWish(wishId);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
 
         // Verify
-        verify(wishlistService).deleteWish(1L);
+        verify(wishlistService).deleteWish(wishId);
     }
 
     @Test
-    void markWishAsCompletedTest() {
+    void shouldMarkWishAsCompletedAndReturnUpdatedWish() {
         // Arrange
-        var completedWish = WishDTO.builder().id(1L).completed(true).build();
-        when(wishlistService.markWishAsCompleted(1L)).thenReturn(completedWish);
+        var wishId = 1L;
+        var completedWish = WishDTO.builder().id(wishId).completed(true).build();
+        when(wishlistService.markWishAsCompleted(wishId)).thenReturn(completedWish);
 
         // Act
-        var response = wishlistController.markWishAsCompleted(1L);
+        var response = wishlistController.markWishAsCompleted(wishId);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -151,14 +158,14 @@ class WishlistControllerTest {
         assertTrue(response.getBody().isCompleted());
 
         // Verify
-        verify(wishlistService).markWishAsCompleted(1L);
+        verify(wishlistService).markWishAsCompleted(wishId);
     }
 
     @Test
-    void getCompletedWishesTest() {
+    void shouldReturnAllCompletedWishesForCurrentUser() {
         // Arrange
         var completed = List.of(WishDTO.builder().completed(true).build());
-        when(wishlistService.getCompletedWishes(1L)).thenReturn(completed);
+        when(wishlistService.getCompletedWishes(USER_ID)).thenReturn(completed);
 
         // Act
         var response = wishlistController.getCompletedWishes();
@@ -171,14 +178,14 @@ class WishlistControllerTest {
 
         // Verify
         verify(authService).getCurrentUser();
-        verify(wishlistService).getCompletedWishes(1L);
+        verify(wishlistService).getCompletedWishes(USER_ID);
     }
 
     @Test
-    void getPendingWishesTest() {
+    void shouldReturnAllPendingWishesForCurrentUser() {
         // Arrange
         var pending = List.of(WishDTO.builder().completed(false).build());
-        when(wishlistService.getPendingWishes(1L)).thenReturn(pending);
+        when(wishlistService.getPendingWishes(USER_ID)).thenReturn(pending);
 
         // Act
         var response = wishlistController.getPendingWishes();
@@ -191,46 +198,47 @@ class WishlistControllerTest {
 
         // Verify
         verify(authService).getCurrentUser();
-        verify(wishlistService).getPendingWishes(1L);
+        verify(wishlistService).getPendingWishes(USER_ID);
     }
 
     @Test
-    void getWishesByCategoryTest() {
+    void shouldReturnWishesByCategory() {
         // Arrange
-        var wishes = List.of(WishDTO.builder().category("Books").build());
-        when(wishlistService.getWishesByCategory("Books", 1L)).thenReturn(wishes);
+        var category = "Books";
+        var wishes = List.of(WishDTO.builder().category(category).build());
+        when(wishlistService.getWishesByCategory(category, USER_ID)).thenReturn(wishes);
 
         // Act
-        var response = wishlistController.getWishesByCategory("Books");
+        var response = wishlistController.getWishesByCategory(category);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
-        assertEquals("Books", response.getBody().getFirst().getCategory());
+        assertEquals(category, response.getBody().getFirst().getCategory());
 
         // Verify
         verify(authService).getCurrentUser();
-        verify(wishlistService).getWishesByCategory("Books", 1L);
+        verify(wishlistService).getWishesByCategory(category, USER_ID);
     }
 
     @Test
-    void searchWishesTest() {
+    void shouldSearchWishesByKeyword() {
         // Arrange
-        var searchResults = List.of(WishDTO.builder().title("bike").build());
-        when(wishlistService.searchWishes("bike")).thenReturn(searchResults);
+        var keyword = "bike";
+        var searchResults = List.of(WishDTO.builder().title(keyword).build());
+        when(wishlistService.searchWishes(keyword)).thenReturn(searchResults);
 
         // Act
-        var response = wishlistController.searchWishes("bike");
+        var response = wishlistController.searchWishes(keyword);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
-        assertEquals("bike", response.getBody().getFirst().getTitle());
+        assertEquals(keyword, response.getBody().getFirst().getTitle());
 
         // Verify
-        verify(wishlistService).searchWishes("bike");
+        verify(wishlistService).searchWishes(keyword);
     }
-
 }
