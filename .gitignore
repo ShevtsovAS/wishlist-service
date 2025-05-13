@@ -8,6 +8,7 @@ target/
 *.iws
 *.iml
 *.ipr
+.cursorrules
 
 ### Eclipse ###
 .apt_generated
