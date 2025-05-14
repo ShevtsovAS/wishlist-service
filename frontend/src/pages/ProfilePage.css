@@ -1,0 +1,116 @@
+.profile-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.profile-page h1 {
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.profile-tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab-button {
+  padding: 0.8rem 1.2rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tab-button:hover {
+  color: #333;
+}
+
+.tab-button.active {
+  color: #61dafb;
+  border-bottom-color: #61dafb;
+}
+
+.tab-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.profile-field {
+  display: flex;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-field:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.field-label {
+  width: 120px;
+  font-weight: 600;
+  color: #555;
+}
+
+.field-value {
+  flex: 1;
+  color: #333;
+}
+
+.stats-box {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.stats-box h3 {
+  margin-top: 0;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.stats-box ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  color: #666;
+}
+
+.coming-soon {
+  background-color: #fff8e1;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.coming-soon h3 {
+  margin-top: 0;
+  color: #ff8f00;
+  margin-bottom: 1rem;
+}
+
+.coming-soon ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  color: #666;
+}
+
+@media (max-width: 600px) {
+  .profile-field {
+    flex-direction: column;
+  }
+  
+  .field-label {
+    margin-bottom: 0.5rem;
+  }
+} 
