@@ -1,5 +1,6 @@
 package com.wishlist.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -21,6 +22,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Generated
+@JsonIgnoreProperties({"wishes"})
 public class User implements Serializable {
 
     @Id

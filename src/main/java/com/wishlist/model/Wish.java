@@ -1,5 +1,6 @@
 package com.wishlist.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Generated
+@JsonIgnoreProperties({"user"})
 public class Wish implements Serializable {
 
     @Id
@@ -50,6 +52,7 @@ public class Wish implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @ToString.Exclude
+    @JsonIgnoreProperties({"wishes"})
     private User user;
 
     @CreatedDate
