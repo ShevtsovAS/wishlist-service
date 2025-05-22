@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>com.wishlist</groupId>
-    <artifactId>wishlist-service</artifactId>
+    <artifactId>wishlist-service-monolith</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Wishlist Service</name>
+    <name>Wishlist Service Monolith</name>
     <description>Spring Boot application for managing user wishlists</description>
 
     <properties>

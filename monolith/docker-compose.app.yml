@@ -1,12 +1,9 @@
-version: '3.9'
-
 services:
   app:
     build: .
     container_name: wishlist-app
     ports:
       - "8080:8080"
-      - "5005:5005"  # for debugging, don't use on PROD
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       DB_URL: ${DB_URL}
@@ -15,9 +12,11 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS}
     env_file:
       - .env
+    labels:
+      - "swagger.docs.enabled=true"
+      - "swagger.docs.path=/api/swagger-ui.html"
     depends_on:
       - postgres
       - redis
